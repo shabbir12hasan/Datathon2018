@@ -14,7 +14,7 @@ options(scipen = 999)
 
 
 # For running over all samples and converting them from gzip to txt.
-for (sample_folder in c(3:9)){
+for (sample_folder in c(0:9)){
   
   #tell R where it can find the data
   ScanOnFolderMaster <- 'D:/StudyMaterial/DatathonMelb_2018/Samp_x/ScanOnTransaction'
