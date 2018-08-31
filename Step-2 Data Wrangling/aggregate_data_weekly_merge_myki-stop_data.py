@@ -1,14 +1,9 @@
 import os
 import re as re
 import pandas as pd
+import timeit
 
-# Declaring folders for Sample 0 and Sample 1 - Scan On and Off
-sample_files_Off_0 = os.listdir("d:/studymaterial/datathonmelb_2018/samp_0/ScanOffTransaction")
-sample_files_On_0 = os.listdir("d:/studymaterial/datathonmelb_2018/samp_0/ScanOnTransaction")
-sample_files_Off_1 = os.listdir("d:/studymaterial/datathonmelb_2018/samp_1/ScanOffTransaction")
-sample_files_On_1 = os.listdir("d:/studymaterial/datathonmelb_2018/samp_1/ScanOnTransaction")
-
-# this method will clean the stop data file, which have StopId amd their description
+# This method will clean the stop data file, which have StopId amd their description
 def stop_data():
 
     # reading stop data
@@ -36,13 +31,16 @@ def get_week_number(week):
     return week_number
 
 
-# This method will retrieve data from all weeks in a year, in all 4 folder- ie, from samp 0-1 and scan on-off
-# get data for week 26, take 4 files of week 26 from 4 folders and create one data frame
+# This method will retrieve data from all weeks in a year, in all  folder- ie, from samp 0-9 and scan on-off
+# get data for week 26, take 18 files of week 26 from 18 folders and create one data frame
 # combine that data frame with location data
 # merge and aggregate and save into one data file
 # do this process for all weeks in all input years
 # generate one main csv file
 def get_aggregate_myki_data_per_location(year_list):
+
+    # Catching time
+    start = timeit.default_timer()
 
     # assigning stop data into df
     stop_data_df = stop_data()
@@ -57,46 +55,30 @@ def get_aggregate_myki_data_per_location(year_list):
         # iterating for each week folder
         for week in week_list:
 
-            # Getting text file from Samp_0- ScanOnTransaction
-            files_inside_week = os.listdir("d:/studymaterial/datathonmelb_2018/Samp_0/ScanOnTransaction/" + str(year) +"/" + str(week))
-            for txt_file in files_inside_week:
-                fileName_Samp_0_On = "d:/studymaterial/datathonmelb_2018/Samp_0/ScanOnTransaction/" + str(year) +"/" +str(week) + "/" + txt_file
-                df_0_On = pd.read_csv(fileName_Samp_0_On, delimiter="|", header=None)
-                # print("fileName_Samp_0_On:    ", fileName_Samp_0_On)
+            df = pd.DataFrame() #empty df for each week
+            for i in range(10):
 
-            # Getting text file from Samp_0- ScanOffTransaction
-            files_inside_week = os.listdir("d:/studymaterial/datathonmelb_2018/Samp_0/ScanOffTransaction/" + str(year) + "/" + str(week))
-            for txt_file in files_inside_week:
-                fileName_Samp_0_Off = "d:/studymaterial/datathonmelb_2018/Samp_0/ScanOffTransaction/" + str(year) + "/" + str(week) + "/" + txt_file
-                df_0_Off = pd.read_csv(fileName_Samp_0_Off, delimiter="|", header=None)
-                # print("fileName_Samp_0_Off:    ", fileName_Samp_0_Off)
+                # Getting text file from Samp_ i ScanOnTransaction
+                files_inside_week = os.listdir("d:/studymaterial/datathonmelb_2018/Samp_" + str(i) +"/ScanOnTransaction/" + str(year) + "/" + str(week))
+                for txt_file in files_inside_week:
+                    fileName_Samp_0_On = "d:/studymaterial/datathonmelb_2018/Samp_" + str(i) +"/ScanOnTransaction/" + str(year) + "/" + str(week) + "/" + txt_file
+                    df_on = pd.read_csv(fileName_Samp_0_On, delimiter="|", header=None)
+                    df = df.append(df_on)
 
-            # Getting text file from Samp_1- ScanOnTransaction
-            files_inside_week = os.listdir("d:/studymaterial/datathonmelb_2018/samp_1/ScanOnTransaction/" + str(year) +"/" + str(week))
-            for txt_file in files_inside_week:
-                fileName_Samp_1_On = "d:/studymaterial/datathonmelb_2018/samp_1/ScanOnTransaction/" + str(year) +"/" +str(week) + "/" + txt_file
-                df_1_On = pd.read_csv(fileName_Samp_1_On, delimiter="|", header=None)
-                # print("fileName_Samp_1_On:    ", fileName_Samp_1_On)
+                # Getting text file from Samp_i- ScanOffTransaction
+                files_inside_week = os.listdir("d:/studymaterial/datathonmelb_2018/Samp_" + str(i) +"/ScanOffTransaction/" + str(year) + "/" + str(week))
+                for txt_file in files_inside_week:
+                    fileName_Samp_0_Off = "d:/studymaterial/datathonmelb_2018/Samp_" + str(i) +"/ScanOffTransaction/" + str(year) + "/" + str(week) + "/" + txt_file
+                    df_Off = pd.read_csv(fileName_Samp_0_Off, delimiter="|", header=None)
+                    df = df.append(df_Off)
 
-            # Getting text file from Samp_1- ScanOffTransaction
-            files_inside_week = os.listdir("d:/studymaterial/datathonmelb_2018/samp_1/ScanOffTransaction/" + str(year) + "/" + str(week))
-            for txt_file in files_inside_week:
-                fileName_Samp_1_Off = "d:/studymaterial/datathonmelb_2018/samp_1/ScanOffTransaction/" + str(year) + "/" + str(week) + "/" + txt_file
-                df_1_Off = pd.read_csv(fileName_Samp_1_Off, delimiter="|", header=None)
-                # print("fileName_Samp_1_Off:    ", fileName_Samp_1_Off)
-
-            # Appeding all 4 files into 1 df
-            # Will hold data for tap on and tap off for sample 1 and sample 0 for a particular week
-            df = df_0_On.append(df_0_Off)
-            df = df.append(df_1_On)
-            df = df.append(df_1_Off)
+            print("Total transaction for",year , week , df.shape[0])
 
             # Attaching column name to df
             df.columns = ['Mode', 'BusinessDate', 'DateTime', 'CardID', 'CardType', 'VehicleID', 'ParentRoute', 'RouteID', 'StopID']
 
             # Getting records for only "BUS"
             df = df[df["Mode"] == 1]
-
 
             # Merging week data with stop location data and creating a new df
             myki_stop_df = pd.merge(df, stop_data_df, how='inner', on=["StopID"])
@@ -107,14 +89,18 @@ def get_aggregate_myki_data_per_location(year_list):
             week_data = pd.DataFrame(week_data) # converting to dataframe
             week_data.reset_index(inplace=True) # resetting index
             weekName = "week_" + str(year) + get_week_number(week) # creating new column name
-            print(weekName)
             week_data.columns = ['StopID', weekName]
 
             final_df = pd.merge(final_df, week_data, how='left', on=["StopID"])
+            print("Total aggregate transaction for stops in ", year, week, final_df.shape[0])
 
-            # break
-        # break
-    final_df.to_csv("aggregated_stop_data_new_weekname.csv", sep=',', index=False)
+            # break # break for one week
+        # break # break for one year
+    final_df.to_csv("aggregated_stop_data_weekname.csv", sep=',', index=False)
+
+    # calculating time
+    stop = timeit.default_timer()
+    print('Time taken: ', stop - start)
 
 
 # years which we would like to get data
